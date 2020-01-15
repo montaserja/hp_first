@@ -1,0 +1,19 @@
+{
+  "name": "my_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "http": "0.0.0",
+    "mysql": "^2.17.1",
+    "pg": "^7.17.1",
+    "pg-promise": "^10.3.5",
+    "ramda": "^0.26.1"
+  }
+}

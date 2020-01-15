@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:async';
 import 'dart:ui';
@@ -6,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:url_launcher/url_launcher.dart'; 
+import 'package:http/http.dart' as http;
 
 
 
@@ -23,37 +25,15 @@ class _MyAppState extends State<MyApp> {
   @override
   
 
-  List<String> rooms = <String>[
-    'Bronze room',
-    'another Room',
-    'another Room1',
-    'another Room2'
-  ];
+  List<String> rooms =[];
 
-  List<String> notRooms = <String>[
-    'The Gym',
-    'The Storage Place'
-  ];
+  List<String> notRooms =[];
 
   List<String> places;
   //final List<String> instructions = <String>['floor 5', 'B', 'C'];
 
-  var instructions = <String, String>{
-    'Bronze room': "Building 10",
-    'The Gym': 'bulding 1 (Rona Remon)',
-    'The Storage Place': 'Bulding 3',
-    'another Room' : 'dont know',
-    'another Room1':'dont know',
-    'another Room2':'dont know'
-  };
-  var cords = <String, List<double>>{
-    'Bronze room': [31.916100999999998, 34.804888999999996],
-    'The Gym': [31.915, 34.803111099999995],
-    'The Storage Place': [31.917517999999998, 34.805492],
-    'another Room' : [31.916100999999998, 34.804888999999996],
-    'another Room1':[31.916100999999998, 34.804888999999996],
-    'another Room2':[31.916100999999998, 34.804888999999996]
-  };
+  var instructions ;
+  var cords ;
 
   Position position;
   LatLng dest;
@@ -227,7 +207,7 @@ var locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceF
             itemCount: places.length,
             itemBuilder: (BuildContext context, int index) {
               return  Card(
-                      
+                      color: Colors.blueGrey  ,
                         child: InkWell(
                     onTap: () {
                       //print(mapController);
@@ -251,8 +231,11 @@ var locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceF
                     },
                     child: ListTile(
                           leading: FlutterLogo(size: 40.0),
-                          title: Text('${places[index]}'),
-                          subtitle: Text('${instructions[places[index]]}'),
+                          title: Text('${places[index]}',
+                          style: TextStyle(color: Colors.white),),
+                          subtitle: Text('${instructions[places[index]]}',
+                          style: TextStyle(color: Colors.white),),
+                          
                           
                         ),
                       )
@@ -331,6 +314,56 @@ var locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceF
       },
     );
 
+
+    getRoomsfromDB() async{
+      try {
+      final response =await
+      http.get("http://10.0.2.2:3000/Rooms");
+      List<dynamic> dbplaces = json.decode(response.body);
+      //print(dbplaces[0]['id']);
+       setState(() {        
+     
+      instructions = {};
+      cords = {};
+      places = [];
+        for (var place in dbplaces) {
+          places.add(place['pname']);
+          instructions[place['pname']] = "building " + place['buildingnum'].toString() + " , " + "Floor " + place['floornum'].toString();
+          cords[place['pname']] = [place['cordx'],place['cordy']];
+        }
+      });  
+      }
+      catch (e){
+        print(e);
+      }
+      
+    }
+
+    getPlacesfromDB() async{
+      try {
+      final response =await
+      http.get("http://10.0.2.2:3000/Places");
+      List<dynamic> dbplaces = json.decode(response.body);
+      //print(dbplaces[0]['id']);
+       setState(() {        
+     
+      instructions = {};
+      cords = {};
+      places = [];
+        for (var place in dbplaces) {
+          places.add(place['pname']);
+          instructions[place['pname']] = "building " + place['buildingnum'].toString() + " , " + "Floor " + place['floornum'].toString();
+          cords[place['pname']] = [place['cordx'],place['cordy']];
+        }
+        
+      });  
+      }
+      catch (e){
+        print(e);
+      }
+      
+    }
+
     Widget buttonsbar = ButtonBar(
       
       buttonMinWidth: 150.0,
@@ -340,12 +373,17 @@ var locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceF
                 FlatButton(
                   child: Text('Meeting Rooms'),
                   color: Colors.blueGrey,
-                  onPressed: () {setRooms();},
+                  onPressed: () {
+                    setRooms();
+                    getRoomsfromDB();
+                    },
                 ),
                 FlatButton(
                   child: Text('Places'),
                   color: Colors.blueGrey,
-                  onPressed: () {setPlaces();},
+                  onPressed: () {
+                    setPlaces();
+                    getPlacesfromDB() ;},
                 ),
               ],
             );
